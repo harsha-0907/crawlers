@@ -71,7 +71,6 @@ class CrawlerHelper(Crawler):
                         
                         if _resp.status_code < 400:
                             _content_type = getContentType(_resp)
-                            _completed_payloads.add(url)
                             _payloads.remove(url)
                             if _content_type == "text/html":
                                 __payloads, __sitemaps = parseHTMLData(_resp.text)
@@ -82,8 +81,10 @@ class CrawlerHelper(Crawler):
                                 __payloads, __sitemaps = parseXMLData(_resp.text)
                                 _payloads = _payloads.union(__sitemaps)
                                 urls = urls.union(__payloads)
+                            _completed_payloads.add(url)
 
 
             except Exception as _e:
                 self._logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
-        return {}
+            
+        return urls
