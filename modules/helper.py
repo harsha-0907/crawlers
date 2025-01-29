@@ -27,4 +27,10 @@ def requester(url=None, headers=None, cookies=None, method="GET", allow_redirect
     finally:
         return _resp
 
+def getContentType(response):
+    for header in response.headers:
+        if header.lower() == "content-type":
+            return response.headers[header]
+    return None
+
 

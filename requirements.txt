@@ -1,4 +1,6 @@
 pip
+bs4
+lxml
 autopep8
 requests
 regex

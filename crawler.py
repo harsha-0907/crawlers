@@ -84,7 +84,17 @@ class Crawler:
                 "/robots.txt",
                  "/../../../../../../../../robots.txt",
                   "..././..././..././..././..././..././robots.txt"
+            ],
+
+            "sitemap": [
+                "/sitemap.xml",
+                "/../../../../../../sitemap.xml",
+                "..././..././..././..././..././..././sitemap.xml",
+                "/sitemap_index.xml",
+                "/../../../../../../sitemap_index.xml",
+                "..././..././..././..././..././..././sitemap_index.xml"
             ]
+            
         }
 
     def crawl(self) -> List:
