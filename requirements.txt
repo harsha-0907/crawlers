@@ -1,0 +1,6 @@
+pip
+autopep8
+requests
+regex
+importlib
+logging
