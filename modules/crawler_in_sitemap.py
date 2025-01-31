@@ -3,7 +3,7 @@
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from helper import *
-print("This is Crawler IN Sitemap")
+
 class CrawlerHelper(Crawler):
     def __init__(self):
         pass

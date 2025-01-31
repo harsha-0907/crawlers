@@ -4,8 +4,6 @@ from crawler import Crawler
 from helper import requester
 import regex
 
-
-print("This is Crawler IN Robots")
 class CrawlerHelper(Crawler):
     """
         This module is used to crawl the robots.txt file

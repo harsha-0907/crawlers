@@ -3,7 +3,6 @@
 
 from crawler import Crawler
 from helper import *
-print("This is Crawler IN webpages")
 class CrawlerHelper(Crawler):
     def __init__(self):
         print(self._domain)
