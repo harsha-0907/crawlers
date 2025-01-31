@@ -20,7 +20,7 @@ def requester(url=None, headers=None, cookies=None, method="GET", allow_redirect
         print(f"Unable to find the host: {url}\n Error is: {_sge}")
     
     except Exception as _e:
-        print("Error occurec while sending the requessts", _e)
+        print("Error occured while sending the request\n Error: ", _e)
         print(f"Retrying to send the packet again {attempts}")
         return requester(logger, url, headers, cookies, method, allow_redirect, timeout, attempts+1)
     

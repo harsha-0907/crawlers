@@ -83,16 +83,16 @@ class Crawler:
             "robots": [
                 "/robots.txt",
                  "/../../../../../../../../robots.txt",
-                  "..././..././..././..././..././..././robots.txt"
+                  "/..././..././..././..././..././..././robots.txt"
             ],
 
             "sitemap": [
                 "/sitemap.xml",
                 "/../../../../../../sitemap.xml",
-                "..././..././..././..././..././..././sitemap.xml",
+                "/..././..././..././..././..././..././sitemap.xml",
                 "/sitemap_index.xml",
                 "/../../../../../../sitemap_index.xml",
-                "..././..././..././..././..././..././sitemap_index.xml"
+                "/..././..././..././..././..././..././sitemap_index.xml"
             ]
             
         }
@@ -103,7 +103,7 @@ class Crawler:
 
         results = set()
         for class_obj in self._classes:
-            results = results.union(class_obj.scan(self))   # Sends a set of urls
-
+            _new_results = class_obj.scan(self) # Returns a set of urls
+            results = results.union(_new_results)
         return list(results)
         

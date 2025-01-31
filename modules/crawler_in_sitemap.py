@@ -17,21 +17,22 @@ class CrawlerHelper(Crawler):
         def parseXMLData(xml_data):
             # We will consider the data that is present in between the <loc> ... </loc>
             # We will return 2 sets (urls & any sitemaps)
-            _sitemaps = {}
+            _sitemaps = set()
             xml_soup = BeautifulSoup(xml_data, "xml")
-            __urls = xml_soup.find_all("loc")
-            xml_urls = {}
-            for __url in __urls:
-                if ".xml" in __url:
-                    _sitemaps.add(__url)
+            _xml_urls = xml_soup.find_all("loc")
+            xml_urls = set()   # The final set of urls
+            for _xml_url in _xml_urls:
+                _xml_url = str(_xml_url)[5:-6]
+                if ".xml" in _xml_url:
+                    _sitemaps.add(_xml_url)
                 else:
-                    xml_urls.add(__url)
+                    xml_urls.add(_xml_url)
 
             return (xml_urls, _sitemaps)
 
         def parseHTMLData(html_data):
             # The sitemap mostly consists of 'a' tags
-            _sitemaps = {}
+            _sitemaps = set()
             html_soup = BeautifulSoup(html_data, "html.parser")
             __urls = html_soup.find_all("a")
             for __url in __urls:
@@ -47,43 +48,53 @@ class CrawlerHelper(Crawler):
             return (xml_urls, _sitemaps)
         
         print("Sitemap")
-        urls = {}  # All the urls that don't have sitemap.xml in them
-        _payloads = self.payloads()["payloads"]
-        _completed_payloads = {}
-
+        urls = set()  # All the urls that don't have sitemap.xml in them
+        _payloads = self.payloads()["sitemap"]
         for _payload in _payloads:
             try:
+                url = self._domain + _payload
                 _resp = requester(sessionHandler=self._sessionHandler,
                     url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
-                if _resp.status_code >= 400:
+                
+                if _resp is None or _resp.status_code >= 400:
                     continue
                 
                 else:
+                    # We found the payload, so now we will explore all the urls present in the xml doc
                     # This has to go in a loop
-                    _payloads = set(url)
-                    for _payload in _payloads:
-                        _url = self._domain + _payload
-                        if _url in _completed_payloads:
-                            continue
-                        
-                        _resp = requester(sessionHandler=self._sessionHandler,
-                            url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
-                        
-                        if _resp.status_code < 400:
-                            _content_type = getContentType(_resp)
-                            _payloads.remove(url)
-                            if _content_type == "text/html":
-                                __payloads, __sitemaps = parseHTMLData(_resp.text)
-                                _payloads = _payloads.union(__payloads)
-                                urls = urls.union(__payloads)
-                            else:
-                                # This is a XML page
-                                __payloads, __sitemaps = parseXMLData(_resp.text)
-                                _payloads = _payloads.union(__sitemaps)
-                                urls = urls.union(__payloads)
+                    _payloads = set([url]); _completed_payloads = set()
+                    while len(_payloads) > 0:
+                        url = _payloads.pop()
+                        if url not in _completed_payloads:
                             _completed_payloads.add(url)
+                            _resp = requester(sessionHandler=self._sessionHandler,
+                                url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
 
+                            if _resp:
+                                if _resp.status_code < 400:
+                                    # Classify the type of response
+                                    _content_type = getContentType(_resp)
+                                    if _content_type == "text/html":
+                                        __urls, __payloads = parseHTMLData(_resp.text)
+                                        urls = urls.union(__urls)
+                                        _payloads = _payloads.union(__payloads)
 
+                                    else:
+                                        # Default is text/xml
+                                        __urls, __payloads = parseXMLData(_resp.text)
+                                        urls = urls.union(__urls)
+                                        _payloads = _payloads.union(__payloads)
+                                    
+                                else:
+                                    # This is not a valid payload
+                                    continue
+
+                        else:
+                            # This payload is already complete
+                            continue
+                    
+                    # No need to check for any other payloads
+                    break
             except Exception as _e:
                 self._logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
             
