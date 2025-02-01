@@ -1,7 +1,8 @@
 #!/bin/python3
 
 from crawler import Crawler
-from helper import requester
+from helper import requester, saveFile
+import os
 import regex
 
 class CrawlerHelper(Crawler):
@@ -24,9 +25,6 @@ class CrawlerHelper(Crawler):
     def scan(self):
         def parseData(robo_data):
             try:
-                with open("robots.txt", 'w') as fiel:
-                    fiel.write(robo_data)
-
                 lines = robo_data.split('\n')
                 urls = set()
                 for _line in lines:
@@ -60,3 +58,7 @@ class CrawlerHelper(Crawler):
                 # Break as soon as the robots.txt is parsed
                 return _urls
         return {}
+
+    def saveJsonFile(self, urls):
+        saveFile(os.path.join(self._directory_path,"urls-robots.json"), {"Robots": list(urls)})
+        self._logger.info("Document Dump Successful")

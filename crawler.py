@@ -104,6 +104,8 @@ class Crawler:
         results = set()
         for class_obj in self._classes:
             _new_results = class_obj.scan(self) # Returns a set of urls
-            results = results.union(_new_results)
+            if _new_results:
+                results = results.union(_new_results)
+                class_obj.saveJsonFile(self, _new_results)
         return list(results)
         

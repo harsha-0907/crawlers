@@ -1,6 +1,7 @@
 #!/bin/python3
 import requests
 import socket
+import json
 
 def requester(url=None, headers=None, cookies=None, method="GET", allow_redirects=False, timeout=None, attempts=1, sessionHandler=None):
     # We need to send in the headers & all other information for the request to be sent
@@ -33,4 +34,13 @@ def getContentType(response):
             return response.headers[header]
     return None
 
-
+def saveFile(file_path: str = None, json_data: dict = dict()):
+    try:
+        print("Successful")
+        with open(file_path, 'w') as file:
+            file.write(json.dumps(json_data))
+        return True
+    
+    except Exception as _e:
+        print("Error Occured While Saving the File.\n Error: ")
+        return False

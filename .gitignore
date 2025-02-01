@@ -2,3 +2,5 @@ __pycache__
 .idx
 .venv
 devserver.sh
+*.json
+*.txt

@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 from crawler import Crawler
 from helper import *
+import os
 
 class CrawlerHelper(Crawler):
     def __init__(self):
@@ -12,7 +13,7 @@ class CrawlerHelper(Crawler):
         # Next in queue after the robots.txt
         # Less value indicates higher priority
         return 1
-    
+
     def scan(self):
         def parseXMLData(xml_data):
             # We will consider the data that is present in between the <loc> ... </loc>
@@ -99,3 +100,7 @@ class CrawlerHelper(Crawler):
                 self._logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
             
         return urls
+
+    def saveJsonFile(self, urls):
+        saveFile(os.path.join(self._directory_path,"urls-sitemap.json"), {"Sitemap": list(urls)})
+        self._logger.info("Document Dump Successful")

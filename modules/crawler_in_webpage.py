@@ -1,11 +1,10 @@
 #!/bin/python3
 
-
 from crawler import Crawler
 from helper import *
+
 class CrawlerHelper(Crawler):
     def __init__(self):
-        print(self._domain)
         pass
     
     def weight(self):
@@ -15,4 +14,10 @@ class CrawlerHelper(Crawler):
 
     def scan(self):
         print("Webpage")
+        # Add filter to make sure that dis-allowed pages are not crawled
         return {}
+
+    def saveJsonFile(self, urls):
+        saveFile(os.path.join(self._directory_path,"urls-webpage.json"), {"Webpage": list(urls)})
+        self._logger.info("Document Dump Successful")
+
