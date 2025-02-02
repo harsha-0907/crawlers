@@ -60,5 +60,5 @@ class CrawlerHelper(Crawler):
         return {}
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self._directory_path,"urls-robots.json"), {"Robots": list(urls)})
+        saveFile(os.path.join(self._directory_path, "results", "urls-robots.json"), {"Robots": list(urls)})
         self._logger.info("Document Dump Successful")

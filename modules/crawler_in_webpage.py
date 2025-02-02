@@ -18,6 +18,6 @@ class CrawlerHelper(Crawler):
         return {}
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self._directory_path,"urls-webpage.json"), {"Webpage": list(urls)})
+        saveFile(os.path.join(self._directory_path, "results", "urls-webpage.json"), {"Webpage": list(urls)})
         self._logger.info("Document Dump Successful")
 

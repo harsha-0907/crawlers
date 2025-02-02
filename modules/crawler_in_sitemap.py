@@ -102,5 +102,5 @@ class CrawlerHelper(Crawler):
         return urls
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self._directory_path,"urls-sitemap.json"), {"Sitemap": list(urls)})
+        saveFile(os.path.join(self._directory_path, "results", "urls-sitemap.json"), {"Sitemap": list(urls)})
         self._logger.info("Document Dump Successful")
