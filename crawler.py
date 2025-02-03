@@ -12,7 +12,7 @@ import time
 
 class Crawler:
     # This module is used to run all the remaining modules
-    def __init__(self, domain: str = None, isInvasive: bool = False):
+    def __init__(self, domain: str = None, isInvasive: bool = False, _allowedExtensions = [], _disallowedExtensions = [".gif", ".css", ".svg", ".png"]):
         success = True
         try:
             self._logger = logging.Logger("Crawler-Log")
@@ -47,7 +47,10 @@ class Crawler:
             self._directory_path = None
             self.loadModulePath()
             self.sortModules()
-            self.extensionFilter = '*'  # Set to None or * to denote all file types
+            self._allowedExtensions = _allowedExtensions  # None denotes that all extensions except the disallowed ones will be be considered
+            # If allowedExtensions is not None, then only those endpoints will be considered (disallowed > allowed) -. precedence
+            self._disallowedExtensions = _disallowedExtensions   # Files with these extensions will not be parsed
+            self._timeout = 2
             __init_response = self._sessionHandler.get(self._domain, allow_redirects=True)
 
             if __init_response.status_code in range(200, 400):
@@ -134,10 +137,12 @@ class Crawler:
                 class_obj.saveJsonFile(self, _new_results)
         
         self._results = results
+        self.saveFinalJsonFile()
         return list(results)
     
     def saveFinalJsonFile(self):
+        from helper import saveFile
         if self._results:
             file_path = os.path.join(self._directory_path, "results", "total-urls.json")
-            saveFile(file_path, {"Urls": list(urls)})
+            saveFile(file_path, {"Urls": list(self._results)})
             self._logger.info(f"Saved all the ursl in the file : {file_path}")
