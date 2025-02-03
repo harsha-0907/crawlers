@@ -7,14 +7,16 @@ class CrawlerHelper(Crawler):
     def __init__(self):
         pass
     
-    def weight(self):
+    @staticmethod
+    def weight():
         # This is after the sitemap.xml
         # Less value indicates higher priority
         return 2
 
-    def scan(self):
-        print("Webpage")
-        # Add filter to make sure that dis-allowed pages are not crawled
+    @classmethod
+    def scan(cls, self):    # Here self -> object of the parent class
+        # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
+        print("Crawling Webpages")
         return {}
 
     def saveJsonFile(self, urls):

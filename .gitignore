@@ -4,3 +4,4 @@ __pycache__
 devserver.sh
 *.json
 *.txt
+results

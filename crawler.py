@@ -19,13 +19,14 @@ class Crawler:
             self._domain = domain
             self._isInvasive = isInvasive
             self._logger = logging.Logger("Crawler-Log")
-            self._logger.setLevel(logging.INFO)
+            self._logger.setLevel(logging.DEBUG)
             self._headers = {"User-Agent": "Crawler-Bot"}
             self._cookies = None
             self._sessionHandler = requests.Session()
             self._directory_path = None
             self.loadModulePath()
             self.sortModules()
+            self.extensionFilter = '*'  # Set to None or * to denote all file types
             __init_response = self._sessionHandler.get(self._domain)
             __init_response.raise_for_status()
         
@@ -72,9 +73,10 @@ class Crawler:
     def sortModules(self):
         self._classes = dict()
         for _modules in self.__modules:
-            class_obj = getattr(_modules, "CrawlerHelper")
-            _weight = class_obj.weight(self)
-            self._classes[class_obj] = _weight
+            self.class_ref = getattr(_modules, "CrawlerHelper")
+            pass
+            _weight = self.class_ref.weight()
+            self._classes[self.class_ref] = _weight
         
         self._classes = dict(sorted(self._classes.items(), key=lambda item: item[1])).keys()
 
@@ -102,6 +104,8 @@ class Crawler:
         # First sorting the modules in sorted order of the weights
 
         results = set()
+        if not os.path.exists(os.path.join(self._directory_path, "results")):   # If the directory doesn't exist
+            os.makedirs(os.path.join(self._directory_path, "results"))
         for class_obj in self._classes:
             _new_results = class_obj.scan(self) # Returns a set of urls
             if _new_results:

@@ -6,16 +6,25 @@ from helper import *
 import os
 
 class CrawlerHelper(Crawler):
+    """
+    This module is used to parse the sitemap.xml file recursively.
+    """
     def __init__(self):
         pass
 
-    def weight(self):
+    @staticmethod
+    def weight():
         # Next in queue after the robots.txt
         # Less value indicates higher priority
         return 1
 
-    def scan(self):
-        def parseXMLData(xml_data):
+    @staticmethod
+    def info():
+        return """We are crawling the urls from sitemap.xml present in the webite
+                All the urls will be parsed irrespective of the invasivness of the crawling"""
+
+    @staticmethod
+    def parseXMLData(xml_data):
             # We will consider the data that is present in between the <loc> ... </loc>
             # We will return 2 sets (urls & any sitemaps)
             _sitemaps = set()
@@ -31,23 +40,27 @@ class CrawlerHelper(Crawler):
 
             return (xml_urls, _sitemaps)
 
-        def parseHTMLData(html_data):
-            # The sitemap mostly consists of 'a' tags
-            _sitemaps = set()
-            html_soup = BeautifulSoup(html_data, "html.parser")
-            __urls = html_soup.find_all("a")
-            for __url in __urls:
-                __url = __url[3:-4]
-                __url = __url[__url.find("=")+2:]
-                __url = __url[:__url.find('"')]
-                if ".xml" in __url:
-                    _sitemaps.add(__url)
-                else:
-                    # Remove href from the text
-                    xml_urls.add(self_domain + __url)
-            
-            return (xml_urls, _sitemaps)
+    @staticmethod
+    def parseHTMLData(html_data): # self is the parent object (crawler's instance)
+        # The sitemap mostly consists of 'a' tags
+        _sitemaps = set()
+        html_soup = BeautifulSoup(html_data, "html.parser")
+        __urls = html_soup.find_all("a")
+        for __url in __urls:
+            __url = __url[3:-4]
+            __url = __url[__url.find("=")+2:]
+            __url = __url[:__url.find('"')]
+            if ".xml" in __url:
+                _sitemaps.add(__url)
+            else:
+                # Remove href from the text
+                xml_urls.add(self_domain + __url)
         
+        return (xml_urls, _sitemaps)
+    
+    @classmethod
+    def scan(cls, self):    # self is the object of the parent class(crawler)
+        # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
         print("Sitemap")
         urls = set()  # All the urls that don't have sitemap.xml in them
         _payloads = self.payloads()["sitemap"]
@@ -76,13 +89,13 @@ class CrawlerHelper(Crawler):
                                     # Classify the type of response
                                     _content_type = getContentType(_resp)
                                     if _content_type == "text/html":
-                                        __urls, __payloads = parseHTMLData(_resp.text)
+                                        __urls, __payloads = cls.parseHTMLData(_resp.text)
                                         urls = urls.union(__urls)
                                         _payloads = _payloads.union(__payloads)
 
                                     else:
                                         # Default is text/xml
-                                        __urls, __payloads = parseXMLData(_resp.text)
+                                        __urls, __payloads = cls.parseXMLData(_resp.text)
                                         urls = urls.union(__urls)
                                         _payloads = _payloads.union(__payloads)
                                     

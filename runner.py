@@ -2,7 +2,7 @@
 
 from crawler import Crawler
 
-crawler_obj = Crawler("https://www.google.com", isInvasive=True)
+crawler_obj = Crawler("https://stackoverflow.com", isInvasive=True)
 crawled_urls = crawler_obj.crawl()
 
 # print(f"Crawled Urls: {crawled_urls}")
