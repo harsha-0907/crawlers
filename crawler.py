@@ -41,7 +41,7 @@ class Crawler:
                     ]
                 }
             self._isInvasive = isInvasive
-            self._headers = {"User-Agent": "Googlebot"}
+            self._headers = {"User-Agent": "WebCrawler"}
             self._cookies = None
             self._sessionHandler = requests.Session()
             self._directory_path = None
