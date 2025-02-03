@@ -13,10 +13,18 @@ class CrawlerHelper(Crawler):
         # Less value indicates higher priority
         return 2
 
+    def parseData(self):
+        pass
+
     @classmethod
     def scan(cls, self):    # Here self -> object of the parent class
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
         print("Crawling Webpages")
+        # Here we have to start with a single url & start searching for others
+        # Starting point of the crawl will be baseUrl or first url in the urls(set)
+        crawled_urls = {}; to_be_crawled = {}
+        
+        
         return {}
 
     def saveJsonFile(self, urls):

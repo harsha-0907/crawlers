@@ -64,6 +64,7 @@ class CrawlerHelper(Crawler):
         print("Sitemap")
         urls = set()  # All the urls that don't have sitemap.xml in them
         _payloads = self.payloads()["sitemap"]
+        print(_payloads)
         for _payload in _payloads:
             try:
                 url = self._domain + _payload

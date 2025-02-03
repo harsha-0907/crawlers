@@ -18,7 +18,7 @@ This is a crawler that will read all the urls that are present in the website's 
     |-  runner.py   # Runs the crawler (Done to avoid executing the whole process twice)
     ```
 3. Modules must be dependent on the runner.py. (So as to avoid problems with ModuleNotFound Errors)\
-4. Need to fetch all the urls by scraping the wesbite. Any filters or features should be added in runner.py(Crawler must crawl all the sites)
+4. Need to fetch all the urls by crawling the wesbite. Any filters or features should be added in runner.py(Crawler must crawl all the sites)
 
 ## Version 1.1
 1. Ability to prevent the crawler from accessing the dis-allowed urls.\

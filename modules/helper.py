@@ -2,6 +2,7 @@
 import requests
 import socket
 import json
+import urllib
 
 def requester(url=None, headers=None, cookies=None, method="GET", allow_redirects=False, timeout=None, attempts=1, sessionHandler=None):
     # We need to send in the headers & all other information for the request to be sent
@@ -44,3 +45,9 @@ def saveFile(file_path: str = None, json_data: dict = dict()):
     except Exception as _e:
         print("Error Occured While Saving the File.\n Error: ")
         return False
+
+def fetchPathAndParams(url):
+    # Return the path of the url
+    _path = url.split('/', 3)
+    # https://example.com/path1/path2/file.ext -> ["https:", "", "example.com", "path1/path2/file.ext"]
+    return _path[3]

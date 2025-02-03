@@ -1,7 +1,7 @@
 #!/bin/python3
 
 from crawler import Crawler
-from helper import requester, saveFile
+from helper import requester, saveFile, fetchPathAndParams
 import os
 import regex
 
@@ -27,12 +27,20 @@ class CrawlerHelper(Crawler):
 
     def parseData(self, robo_data):
             try:
+                site_map_urls = set()
                 lines = robo_data.split('\n')
                 urls = set()
                 for _line in lines:
                     if _line == '' or _line[0] == '#':
                         # This is a comment
                         continue
+
+                    elif "Sitemap" in _line:
+                        # This is the url to the sitemap
+                        _, site_map_url = _line.split(' ', 1)
+                        # Here we will change the payload of the sitemap
+                        site_map_urls.add(site_map_url)
+
                     else:
                         if _line[:5] == "Allow" or _line[:8] == "Disallow":
                             try:
@@ -45,7 +53,14 @@ class CrawlerHelper(Crawler):
                             except ValueError as _ve:
                                 # The line doesn't have any path mentioned after the Allow/Disallow
                                 continue
-                            
+                                
+                if site_map_urls:
+                    print(site_map_urls)
+                    site_map_urls = ['/'+fetchPathAndParams(url_path) for url_path in site_map_urls]
+                    print(site_map_urls)
+                    self._crawler_payloads["sitemap"] = list(site_map_urls)
+                    print("Updated the Sitemap")
+                
                 if urls:
                     return urls
                 else:

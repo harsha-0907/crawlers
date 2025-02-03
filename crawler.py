@@ -15,25 +15,62 @@ class Crawler:
     def __init__(self, domain: str = None, isInvasive: bool = False):
         success = True
         try:
-            print("This is Crawler")
-            self._domain = domain
-            self._isInvasive = isInvasive
             self._logger = logging.Logger("Crawler-Log")
             self._logger.setLevel(logging.DEBUG)
-            self._headers = {"User-Agent": "Crawler-Bot"}
+            _handler = logging.StreamHandler(sys.stdout)
+            _handler.setLevel(logging.DEBUG)
+            _formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            _handler.setFormatter(_formatter)
+            self._logger.addHandler(_handler)
+            self._logger.info("This is the Basic-Crawler... Works if WAF is not present")
+            self._domain = domain
+            self._crawler_payloads = {
+                    "robots": [
+                        "/robots.txt",
+                        "/../../../../../../../../robots.txt",
+                        "/..././..././..././..././..././..././robots.txt"
+                    ],
+
+                    "sitemap": [
+                        "/sitemap.xml",
+                        "/../../../../../../sitemap.xml",
+                        "/..././..././..././..././..././..././sitemap.xml",
+                        "/sitemap_index.xml",
+                        "/../../../../../../sitemap_index.xml",
+                        "/..././..././..././..././..././..././sitemap_index.xml"
+                    ]
+                }
+            self._isInvasive = isInvasive
+            self._headers = {"User-Agent": "Googlebot"}
             self._cookies = None
             self._sessionHandler = requests.Session()
             self._directory_path = None
             self.loadModulePath()
             self.sortModules()
             self.extensionFilter = '*'  # Set to None or * to denote all file types
-            __init_response = self._sessionHandler.get(self._domain)
-            __init_response.raise_for_status()
-        
-        except requests.exceptions.RequestException as _ree:
-            success = False
-            print("Error connecting with the server", _ree)
-        
+            __init_response = self._sessionHandler.get(self._domain, allow_redirects=True)
+
+            if __init_response.status_code in range(200, 400):
+                # Server is active & ready to serve requests
+                self._logger.info("Server Active & Ready")
+
+            elif __init_response.status_code in (401, 403):
+                self._logger.critical("Error: Authorization Required (Possible Cause :- Important Headers Unavailable)")
+                success = False
+
+            elif __init_response.status_code in (404,):
+                self._logger.critical("Error: Page Not Found")
+                success = False
+            
+            elif __init_response.status_code in(405, 406, 407, 408):
+                self._logger.critical("Error: Server Unavailable or behind an active WAF")
+                self._logger.info("Try using the Advanced Crawler (Under-Development)")
+                success = False
+       
+            else:
+                success = False
+                self._logger.critical("Error: Internal Error Occured from the Server side")
+
         except socket.gaierror as _sge:
             success = False
             print("Error connecting with the server")
@@ -81,23 +118,7 @@ class Crawler:
         self._classes = dict(sorted(self._classes.items(), key=lambda item: item[1])).keys()
 
     def payloads(self):
-        return {
-            "robots": [
-                "/robots.txt",
-                 "/../../../../../../../../robots.txt",
-                  "/..././..././..././..././..././..././robots.txt"
-            ],
-
-            "sitemap": [
-                "/sitemap.xml",
-                "/../../../../../../sitemap.xml",
-                "/..././..././..././..././..././..././sitemap.xml",
-                "/sitemap_index.xml",
-                "/../../../../../../sitemap_index.xml",
-                "/..././..././..././..././..././..././sitemap_index.xml"
-            ]
-            
-        }
+        return self._crawler_payloads
 
     def crawl(self) -> List:
         # We will first perform the scan for Robots.txt then Sitemap.xml & then lastly webpage
@@ -111,5 +132,12 @@ class Crawler:
             if _new_results:
                 results = results.union(_new_results)
                 class_obj.saveJsonFile(self, _new_results)
-        return list(results)
         
+        self._results = results
+        return list(results)
+    
+    def saveFinalJsonFile(self):
+        if self._results:
+            file_path = os.path.join(self._directory_path, "results", "total-urls.json")
+            saveFile(file_path, {"Urls": list(urls)})
+            self._logger.info(f"Saved all the ursl in the file : {file_path}")
