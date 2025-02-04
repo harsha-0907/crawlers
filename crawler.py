@@ -12,7 +12,7 @@ import time
 
 class Crawler:
     # This module is used to run all the remaining modules
-    def __init__(self, domain: str = None, isInvasive: bool = False, _allowedExtensions = [], _disallowedExtensions = [".gif", ".css", ".svg", ".png"]):
+    def __init__(self, domain: str = None, isInvasive: bool = False, _allowedExtensions = [], _disallowedExtensions = [".gif", ".css", ".svg", ".png", ".webp"]):
         success = True
         try:
             self._logger = logging.Logger("Crawler-Log")

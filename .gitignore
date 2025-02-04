@@ -1,8 +1,8 @@
 __pycache__
 .idx
 .venv
-devserver.sh
 *.sh
 *.json
 *.txt
+*.html
 results

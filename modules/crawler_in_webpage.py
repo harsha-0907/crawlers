@@ -30,13 +30,14 @@ class CrawlerHelper(Crawler):
         try:
             domain_name = self._domain.split("/", 2)[2]
             src_pattern = r'src="[^\s]+"'   # regex Patterns to match src
-            href_pattern = r'href="[^\s]"'  # regex Patterns to match href
+            href_pattern = r'href="[^\s]+"'  # regex Patterns to match href
             src_text = re.findall(src_pattern, web_data)
             for _text in src_text:
                 _url = _text[5:-1]
                 if "http" not in _url:
                     # This is an indirect url (same domain only)
-                    urls.add(self._domain+_url)
+                    if _url[0] == '/':
+                        urls.add(self._domain+_url)
                 else:
                     if domain_name in _url:
                         # Check if the url belongs to the same domain
@@ -50,7 +51,8 @@ class CrawlerHelper(Crawler):
                 _url = _text[6:-1]
                 if "http" not in _url:
                     # This is an indirect url (same domain only)
-                    urls.add(self._domain+_url)
+                    if _url[0] == '/':
+                        urls.add(self._domain+_url)
                 else:
                     if domain_name in _url:
                         urls.add(_url)
@@ -64,7 +66,6 @@ class CrawlerHelper(Crawler):
         finally:
             return urls
         
-    
     def isValidExtension(self, url):
         # We will check if the response data that is expected from the url is required or not
         _url = urlparse(url)
@@ -86,14 +87,12 @@ class CrawlerHelper(Crawler):
             _request_interval = 0.4 # A timeout of atleast 0.4 seconds before sending another request (increases on 429 error)
             # Here we have to start with a single url & start searching for others
             # Starting point of the crawl will be baseUrl or first url in the urls(set)
-            crawled_urls = set(); queue = [self._domain]
+            crawled_urls = set(); queue = [self._domain]    
             while len(queue) > 0:
                 _current_url = queue.pop(0)
                 _resp = requester(sessionHandler=self._sessionHandler, url=_current_url, headers=self._headers,
                         cookies=self._cookies, timeout=self._timeout, allow_redirects=True)
-                
                 last_time = time.time() # To store the time at which the scan started
-                
                 _new_results = set()
                 if _resp is not None:
                     # Parse the response if it is valid for any content
@@ -107,10 +106,13 @@ class CrawlerHelper(Crawler):
                     else:
                         _new_results = cls.parseData(self, _resp.text)
                 
-                print(len(_new_results))
+                # print(len(_new_results))
                 if _new_results:
                     for _new_url in _new_results:
                         if cls.isValidExtension(self, _new_url):
+                            if _new_url[-1] == '/':
+                                _new_url = _new_url[:-1]
+                            
                             if _new_url in crawled_urls or _new_url in queue:
                                 continue
                             else:
@@ -121,6 +123,8 @@ class CrawlerHelper(Crawler):
                 if _time_spent < _request_interval:
                     _time_rem = _request_interval - _time_rem
                     time.sleep(_time_rem)
+
+                crawled_urls.add(_current_url)
                 
         else:
             self._logger.info("Web-Crawling not Done as scan is non Invasive")

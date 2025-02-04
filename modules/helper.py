@@ -19,7 +19,7 @@ def requester(url=None, headers=None, cookies=None, method="GET", allow_redirect
             _resp = sessionHandler.request(method=method, url=url, headers=headers,
                 cookies=cookies, allow_redirects=allow_redirects, timeout=timeout)
                 
-    except requests.ConnectTimeout as _rct:
+    except requests.exceptions.Timeout as _rct:
         logger.warning("Connection Timed Out")
         if timeout:
             timeout += 1
