@@ -23,4 +23,4 @@ As it continues to *evolve*, it is set to become a valuable tool for developers 
 ### You will be getting your results!!!
 
 
-#### Stay Tuned For Version 1.1
+#### Stay Tuned For Version 1.1 
