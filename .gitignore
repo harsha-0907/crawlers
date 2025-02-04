@@ -1,8 +1,0 @@
-__pycache__
-.idx
-.venv
-*.sh
-*.json
-*.txt
-*.html
-results
