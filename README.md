@@ -1,32 +1,26 @@
-# Go-Grawler
+# Grawler (1.0)
 
-This is a crawler that will read all the urls that are present in the website's surface
+**Grawler** is an *evolving* web crawler designed to explore and extract URLs associated with a given domain.  
+It simplifies the process of discovering and analyzing site structures, offering efficiency and flexibility for various use cases.  
 
-## To-Achieve
-1. Ablity to perform Invasive & Non-Invasive searching \
-2. Ability to fetch results based on extensions \
+**Grawler** is built to handle crawling across multiple levels of URLs, with a focus on speed and accuracy.  
+As it continues to *evolve*, it is set to become a valuable tool for developers looking for a reliable solution for web crawling and data collection.
 
-## Developer-Notes (Version 1.0)
-1. Use Breadth First Search to crawl all the webpages \
-2. Use the following approach while running the modules:\
-    ```
-    crawler
-    |-  modules
-    |-  |-  helper.py   # Any helper functions
-    |-  |-  cralwer_in_robots.py    # To perform a specific functionality    
-    |-  crawler.py  # Runs all the modules
-    |-  runner.py   # Runs the crawler (Done to avoid executing the whole process twice)
-    ```
-3. Modules must be dependent on the runner.py. (So as to avoid problems with ModuleNotFound Errors)\
-4. Need to fetch all the urls by crawling the wesbite. Any filters or features should be added in runner.py(Crawler must crawl all the sites)
 
-## Version 1.1
-1. Ability to prevent the crawler from accessing the dis-allowed urls.\
-2. Ability to change the user agent according to the information present in the robots.txt (intelligent mode)\
-3. Should be able to add custom timeouts to the crawler to avoid being blocked.\
-4. Treating urls like objects so that further operations can be added\
+## Functionality
+1. Ablity to perform Invasive & Non-Invasive searching 
+2. Ability to fetch results based on extensions
 
-## Version 1.2
-1. Ability to parse the documents & index the pages
-2. Perform searches on the website to obtain usefule information just like Google
-3. Ability to store the data for dynamic retrieval & querying
+
+## Steps to Install & Run the Project
+1. Git clone the repo: `git clone https://github.com/harsha-0907/crawlers.git` 
+2. Create a Virtual Environment  `python3 -m venv .venv`    
+3. Activate the Virtual Environment `source .venv/bin/activate` for linux & `venv\Scripts\activate` for windows systems 
+4. Install the necessary packages  `pip install -r requirments.txt`
+5. Run the Program with the command `python3 runner.py`
+
+
+### You will be getting your results!!!
+
+
+#### Stay Tuned For Version 1.1

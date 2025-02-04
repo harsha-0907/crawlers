@@ -22,7 +22,6 @@ class Crawler:
             _formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             _handler.setFormatter(_formatter)
             self._logger.addHandler(_handler)
-            self._logger.info("This is the Basic-Crawler... Works if WAF is not present")
             self._domain = domain
             self._crawler_payloads = {
                     "robots": [
@@ -41,7 +40,7 @@ class Crawler:
                     ]
                 }
             self._isInvasive = isInvasive
-            self._headers = {"User-Agent": "WebCrawler"}
+            self._headers = {"User-Agent": "GoWebCrawler"}
             self._cookies = None
             self._sessionHandler = requests.Session()
             self._directory_path = None
