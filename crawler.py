@@ -2,6 +2,7 @@
 
 # Import the necessary packages
 from typing import List
+import json
 import logging
 import importlib
 import sys
@@ -12,38 +13,102 @@ import time
 
 class Crawler:
     # This module is used to run all the remaining modules
-    def __init__(self, domain: str = None, isInvasive: bool = False, _allowedExtensions = [], _disallowedExtensions = [".gif", ".css", ".svg", ".png", ".webp"]):
+
+    def loadLogger(self):
+        # Initializing the object variables & dependencies like logger 
+        self._logger = logging.Logger("Crawler-Log")
+        LOG_FORMAT = '%(log_color)s - %(levelname)-8s%(reset)s %(message)s'
+        formatter = colorlog.ColoredFormatter(
+                        LOG_FORMAT,
+                        log_colors={
+                            'DEBUG': 'green',
+                            'INFO': 'normal',
+                            'WARNING': 'pink',
+                            'ERROR': 'light_red',
+                            'CRITICAL': 'dark_red',
+                        }
+                    )
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger = logging.getLogger('colored_logger')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+    
+    def loadSettings(self):
+        # The setings are present in the settings.json file
+        try:
+            if os.path.exists(os.path.join(self._directory_path, "settings.json")):
+                with open(os.path.join(self.directory_path, "settings.json"))as file:
+                    self.data_store = json.loads(file.read())
+                    
+                self.crawler_payloads = self.data_store["crawler-payloads"]
+                self.isInvasive = self.data_store["isInvasive"]
+                self.headers = {"User-Agent": self.data_store["user-agent"]}
+                self.cookies = self.data_store["cookies"]
+                self._timeout = self.data_store["timeout"]
+            
+            else:
+                self._logger.critical("Invalid Settings.json")
+                exit()
+        
+        except Exception as _e:
+            self._logger.critical(f"Error Occured while loading settings\n Error: {_e}")
+            exit()
+        
+    def loadPaths(self):
+        file_path = os.path.abspath(__file__)
+        self.directory_path = file_path[:file_path.rfind('/')]
+        self.module_directory_path = os.path.join(self.directory_path, "modules")
+
+        # Add the directories for searching modules & other files
+        sys.path.append(self.directory_path)
+        sys.path.append(self.module_directory_path)
+
+    def loadSessionHandler(self):
+        try:
+            self.sessionHandler = requests.Session()
+            self.sessionHandler.headers.update(self.headers)
+            self.sessionHandler.cookies.update(self.cookies)
+        
+        except Exception as _e:
+            self._logger.critical(f"Error Occured while loading session handler\n Error: {_e}")
+            exit()
+
+    def isServerActive(self):
+        try:
+            _resp = self.sessionHandler.get(self._domain, timeout=10)
+
+            if _resp is None:
+                raise socket.gaierror("Recieved Null Response")
+            else:
+                pass
+        
+        except socket.gaierror as _sge:
+            self._logger.critical(f"Host Name Invalid.. Please re-check the domain\n Error: {_sge}")
+            exit()
+        
+        except requests.Timeout as _rte:
+            self._logger.warning(f"Host Connection has Timed Out... \n Error: {_rte}")
+            exit()
+
+        except Exception as _e:
+            self._logger.critical(f" An Unknown Error Occured\n Error: {_e}")
+    
+    def setup():
+        # Setup all the variables & dependencies
+        print("Initializing the Crawler Dependencies")
+        self.loadLogger()
+        self.loadPaths()
+        self.loadSettings()
+        self.loadSessionHandler()
+        self.isServerActive()
+
+    def __init__(self, domain: str = None):
         success = True
         try:
-            self._logger = logging.Logger("Crawler-Log")
-            self._logger.setLevel(logging.DEBUG)
-            _handler = logging.StreamHandler(sys.stdout)
-            _handler.setLevel(logging.DEBUG)
-            _formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            _handler.setFormatter(_formatter)
-            self._logger.addHandler(_handler)
             self._domain = domain
-            self._crawler_payloads = {
-                    "robots": [
-                        "/robots.txt",
-                        "/../../../../../../../../robots.txt",
-                        "/..././..././..././..././..././..././robots.txt"
-                    ],
+            self.setup()
 
-                    "sitemap": [
-                        "/sitemap.xml",
-                        "/../../../../../../sitemap.xml",
-                        "/..././..././..././..././..././..././sitemap.xml",
-                        "/sitemap_index.xml",
-                        "/../../../../../../sitemap_index.xml",
-                        "/..././..././..././..././..././..././sitemap_index.xml"
-                    ]
-                }
-            self._isInvasive = isInvasive
-            self._headers = {"User-Agent": "GoWebCrawler"}
-            self._cookies = None
-            self._sessionHandler = requests.Session()
-            self._directory_path = None
             self.loadModulePath()
             self.sortModules()
             self._allowedExtensions = _allowedExtensions  # None denotes that all extensions except the disallowed ones will be be considered

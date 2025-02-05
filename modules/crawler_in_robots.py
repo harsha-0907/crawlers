@@ -11,7 +11,6 @@ class CrawlerHelper(Crawler):
     """
 
     def __init__(self):
-        self._logger.info("Running the Robots-Crawler")
         pass
 
     @staticmethod
@@ -73,7 +72,7 @@ class CrawlerHelper(Crawler):
     @classmethod
     def scan(cls, self): # Here self is the parent class's object
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
-        self._logger.info("Hell fron robots")
+        self._logger.info("Scanning the Robots.txt")
         __paths = self.payloads()["robots"]
         for __path in __paths:
             url = self._domain + __path
