@@ -44,11 +44,11 @@ class CrawlerHelper(Crawler):
                         if _line[:5] == "Allow" or _line[:8] == "Disallow":
                             try:
                                 _access, _path = _line.split(' ', 1)
-                                if _access == "Allow:" or (_access == "Disallow:" and self._isInvasive):
+                                if _access == "Allow:" or (_access == "Disallow:" and self.isInvasive):
                                     # Now check if the path
                                     _pos_last_backslash = _path.rfind('/')
                                     _directory_path = _path[:_pos_last_backslash+1]
-                                    urls.add(self._domain + _directory_path)
+                                    urls.add(self.domain + _directory_path)
                             except ValueError as _ve:
                                 # The line doesn't have any path mentioned after the Allow/Disallow
                                 continue
@@ -57,7 +57,7 @@ class CrawlerHelper(Crawler):
                     print(site_map_urls)
                     site_map_urls = ['/'+fetchPathAndParams(url_path) for url_path in site_map_urls]
                     print(site_map_urls)
-                    self._crawler_payloads["sitemap"] = list(site_map_urls)
+                    self.crawler_payloads["sitemap"] = list(site_map_urls)
                     print("Updated the Sitemap")
                 
                 if urls:
@@ -66,17 +66,17 @@ class CrawlerHelper(Crawler):
                     return {}
             
             except Exception as _e:
-                self._logger.error("Error while parsing the Robots file", _e)
+                self.logger.error("Error while parsing the Robots file", _e)
                 return list(urls)
         
     @classmethod
     def scan(cls, self): # Here self is the parent class's object
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
-        self._logger.info("Scanning the Robots.txt")
+        self.logger.info("Scanning the Robots.txt")
         __paths = self.payloads()["robots"]
         for __path in __paths:
-            url = self._domain + __path
-            _resp = requester(sessionHandler=self._sessionHandler, url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
+            url = self.domain + __path
+            _resp = requester(sessionHandler=self.sessionHandler, url=url, headers=self.headers, cookies=self.cookies, allow_redirects=True)
             if (_resp is not None) and (_resp.status_code >= 400):
                 continue
             else:
@@ -86,5 +86,5 @@ class CrawlerHelper(Crawler):
         return {}
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self._directory_path, "results", "urls-robots.json"), {"Robots": list(urls)})
-        self._logger.info("Document Dump Successful")
+        saveFile(os.path.join(self.directory_path, "results", "urls-robots.json"), {"Robots": list(urls)})
+        self.logger.info("Document Dump Successful")

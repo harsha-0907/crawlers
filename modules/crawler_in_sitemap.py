@@ -67,9 +67,9 @@ class CrawlerHelper(Crawler):
         print(_payloads)
         for _payload in _payloads:
             try:
-                url = self._domain + _payload
-                _resp = requester(sessionHandler=self._sessionHandler,
-                    url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
+                url = self.domain + _payload
+                _resp = requester(sessionHandler=self.sessionHandler,
+                    url=url, headers=self.headers, cookies=self.cookies, allow_redirects=True)
                 
                 if _resp is None or _resp.status_code >= 400:
                     continue
@@ -82,8 +82,8 @@ class CrawlerHelper(Crawler):
                         url = _payloads.pop()
                         if url not in _completed_payloads:
                             _completed_payloads.add(url)
-                            _resp = requester(sessionHandler=self._sessionHandler,
-                                url=url, headers=self._headers, cookies=self._cookies, allow_redirects=True)
+                            _resp = requester(sessionHandler=self.sessionHandler,
+                                url=url, headers=self.headers, cookies=self.cookies, allow_redirects=True)
 
                             if _resp:
                                 if _resp.status_code < 400:
@@ -111,10 +111,10 @@ class CrawlerHelper(Crawler):
                     # No need to check for any other payloads
                     break
             except Exception as _e:
-                self._logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
+                self.logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
             
         return urls
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self._directory_path, "results", "urls-sitemap.json"), {"Sitemap": list(urls)})
-        self._logger.info("Document Dump Successful")
+        saveFile(os.path.join(self.directory_path, "results", "urls-sitemap.json"), {"Sitemap": list(urls)})
+        self.logger.info("Document Dump Successful")

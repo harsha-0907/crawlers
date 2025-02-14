@@ -1,0 +1,26 @@
+{
+    "Configurations": {
+        "disallowedExtensions": [".svg", ".png", ".webp", ".css", ".gif"],
+        "allowedExtensions": [],
+        "user-agent": "GoWebCrawler",
+        "cookies": "",
+        "isInvasive": false,
+        "timeout": 2,
+        "crawler-payloads": {
+            "robots": [
+                "/robots.txt",
+                "/../../../../../../../../robots.txt",
+                "/..././..././..././..././..././..././robots.txt"
+            ],
+
+            "sitemap": [
+                "/sitemap.xml",
+                "/../../../../../../sitemap.xml",
+                "/..././..././..././..././..././..././sitemap.xml",
+                "/sitemap_index.xml",
+                "/../../../../../../sitemap_index.xml",
+                "/..././..././..././..././..././..././sitemap_index.xml"
+            ]
+        }
+    }
+}
