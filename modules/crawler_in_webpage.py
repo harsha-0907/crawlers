@@ -28,7 +28,7 @@ class CrawlerHelper(Crawler):
         # Links(Direct & In-Direct are found in anchor tags) -> href, src (most cases)
         urls = set()
         try:
-            domain_name = self.domain.split("/", 2)[2]
+            domain_name = self._domain.split("/", 2)[2]
             src_pattern = r'src="[^\s]+"'   # regex Patterns to match src
             href_pattern = r'href="[^\s]+"'  # regex Patterns to match href
             src_text = re.findall(src_pattern, web_data)
@@ -37,7 +37,7 @@ class CrawlerHelper(Crawler):
                 if "http" not in _url:
                     # This is an indirect url (same domain only)
                     if _url[0] == '/':
-                        urls.add(self.domain+_url)
+                        urls.add(self._domain+_url)
                 else:
                     if domain_name in _url:
                         # Check if the url belongs to the same domain
@@ -52,7 +52,7 @@ class CrawlerHelper(Crawler):
                 if "http" not in _url:
                     # This is an indirect url (same domain only)
                     if _url[0] == '/':
-                        urls.add(self.domain+_url)
+                        urls.add(self._domain+_url)
                 else:
                     if domain_name in _url:
                         urls.add(_url)
@@ -70,9 +70,9 @@ class CrawlerHelper(Crawler):
         # We will check if the response data that is expected from the url is required or not
         _url = urlparse(url)
         _ext = splitext(_url.path)[1]
-        if _ext in self.disallowedExtensions:
+        if _ext in self._disallowedExtensions:
             return False
-        elif _ext == '' or self.allowedExtensions == [] or _ext in self.allowedExtensions:
+        elif _ext == '' or self._allowedExtensions == [] or _ext in self._allowedExtensions:
             # If it is a webpage like(/path1/path2)
             return True
         else:
@@ -81,17 +81,17 @@ class CrawlerHelper(Crawler):
     @classmethod
     def scan(cls, self):    # Here self -> object of the parent class
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
-        if self.isInvasive:    # This is an Invasive scan -> consumes a lot of network bandwidth
+        if self._isInvasive:    # This is an Invasive scan -> consumes a lot of network bandwidth
             print("Crawling Webpages")
             _last_time = 0  # Intitalizing the _last_time param
             _request_interval = 0.4 # A timeout of atleast 0.4 seconds before sending another request (increases on 429 error)
             # Here we have to start with a single url & start searching for others
             # Starting point of the crawl will be baseUrl or first url in the urls(set)
-            crawled_urls = set(); queue = [self.domain]    
+            crawled_urls = set(); queue = [self._domain]    
             while len(queue) > 0:
                 _current_url = queue.pop(0)
-                _resp = requester(sessionHandler=self.sessionHandler, url=_current_url, headers=self.headers,
-                        cookies=self.cookies, timeout=self.timeout, allow_redirects=True)
+                _resp = requester(sessionHandler=self._sessionHandler, url=_current_url, headers=self._headers,
+                        cookies=self._cookies, timeout=self._timeout, allow_redirects=True)
                 last_time = time.time() # To store the time at which the scan started
                 _new_results = set()
                 if _resp is not None:
@@ -127,11 +127,10 @@ class CrawlerHelper(Crawler):
                 crawled_urls.add(_current_url)
                 
         else:
-            print("Not Crawling the WEbpage")
-            self.logger.info("Web-Crawling not Done as scan is non Invasive")
+            self._logger.info("Web-Crawling not Done as scan is non Invasive")
             return {}
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self.directory_path, "results", "urls-webpage.json"), {"Webpage": list(urls)})
-        self.logger.info("Document Dump Successful")
+        saveFile(os.path.join(self._directory_path, "results", "urls-webpage.json"), {"Webpage": list(urls)})
+        self._logger.info("Document Dump Successful")
 

@@ -6,5 +6,3 @@ requests
 regex
 importlib
 logging
-python-dotenv
-colorlog
