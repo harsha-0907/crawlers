@@ -14,11 +14,15 @@ class CrawlerHelper(Crawler):
         pass
 
     @staticmethod
+    def name():
+        return "CrawlerInRobots"
+
+    @staticmethod
     def weight():
         # This indicates the order the class has to run
         # Less value indicates higher priority
         return 0
-
+    
     @staticmethod
     def info():
         return """We are parsing the robots.txt to find any related paths or urls present in the website.
@@ -54,9 +58,9 @@ class CrawlerHelper(Crawler):
                                 continue
                                 
                 if site_map_urls:
-                    print(site_map_urls)
+                    # print(site_map_urls)
                     site_map_urls = ['/'+fetchPathAndParams(url_path) for url_path in site_map_urls]
-                    print(site_map_urls)
+                    # print(site_map_urls)
                     self.crawler_payloads["sitemap"] = list(site_map_urls)
                     print("Updated the Sitemap")
                 

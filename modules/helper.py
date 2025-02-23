@@ -23,6 +23,7 @@ def requester(url=None, headers=None, cookies=None, method="GET", allow_redirect
         logger.warning("Connection Timed Out")
         if timeout:
             timeout += 1
+            time.sleep(0.7)
             return requester(url, headers, cookies, method, allow_redirect, timeout, attempts+1)
         else:
             # No timeout(max possible time) defined so exiting
@@ -30,6 +31,7 @@ def requester(url=None, headers=None, cookies=None, method="GET", allow_redirect
         
     except requests.exceptions.RequestException as _rere:
         logger.warning(f"Error sending the request: {_rere}")
+        
         
     except socket.gaierror as _sge:
         logger.warning(f"Unable to find the host: {url}\n Error is: {_sge}")
@@ -50,7 +52,6 @@ def getContentType(response):
 
 def saveFile(file_path: str = None, json_data: dict = dict()):
     try:
-        print("Successful")
         with open(file_path, 'w') as file:
             file.write(json.dumps(json_data, indent=4))
         return True

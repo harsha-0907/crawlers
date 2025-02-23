@@ -4,8 +4,10 @@
         "allowedExtensions": [],
         "user-agent": "GoWebCrawler",
         "cookies": "",
-        "isInvasive": false,
-        "timeout": 2,
+        "isInvasive": true,
+        "maxdepth": 7,
+        "timedCrawl": 900,
+        "timeout": 10,
         "crawler-payloads": {
             "robots": [
                 "/robots.txt",

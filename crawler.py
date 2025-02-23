@@ -4,7 +4,6 @@
 from typing import List
 import json
 import logging
-import colorlog
 import importlib
 import sys
 import os
@@ -17,23 +16,19 @@ class Crawler:
 
     def loadLogger(self):
         # Initializing the object variables & dependencies like logger 
-        self.logger = logging.Logger("Crawler-Log")
-        LOG_FORMAT = '%(log_color)s - %(levelname)-8s%(reset)s %(message)s'
-        formatter = colorlog.ColoredFormatter(
-                        LOG_FORMAT,
-                        log_colors={
-                            'DEBUG': 'green',
-                            'INFO': 'normal',
-                            'WARNING': 'pink',
-                            'ERROR': 'light_red',
-                            'CRITICAL': 'dark_red',
-                        }
-                    )
-        handler = logging.StreamHandler()
+        self.logger = logging.getLogger("Crawler-Log")
+        self.logger.setLevel(logging.DEBUG)  # Set the logger to capture DEBUG and above
+        
+        # Create a file handler to write logs to a file
+        handler = logging.FileHandler('crawler.log')
+        handler.setLevel(logging.DEBUG)  # Ensure the handler is set to capture DEBUG and above
+        
+        # Create a formatter with the desired format
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
-        logger = logging.getLogger('colored_logger')
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
+        
+        # Add the handler to the logger
+        self.logger.addHandler(handler)
     
     def loadSettings(self):
         # The setings are present in the settings.json file
@@ -47,6 +42,11 @@ class Crawler:
                 self.headers = {"User-Agent": self.data_store["Configurations"]["user-agent"]}
                 self.cookies = self.data_store["Configurations"]["cookies"]
                 self.timeout = self.data_store["Configurations"]["timeout"]
+                self.maxDepth = self.data_store["Configurations"]["maxdepth"]   # The default value for depth limit is 4
+                self.disallowedExtensions = self.data_store["Configurations"]["disallowedExtensions"]
+                self.allowedExtensions = self.data_store["Configurations"]["allowedExtensions"]
+                self.urls = set()
+                self.userAgents = dict()
             
             else:
                 self.logger.critical("Invalid Settings.json")
@@ -139,6 +139,12 @@ class Crawler:
             self.logger.critical(f"Error Occured while Sorting the Classes. \n Error : {_e}")
             exit()
 
+    def validateServerDetails(self):
+        # Any checks for the server
+        if self.domain[-1] == '/':
+            # The url shouldn't end with a '/'
+            self.domain = self.domain[:-1]
+
     def setup(self):
         # Setup all the variables & dependencies
         print("Initializing the Crawler Dependencies")
@@ -146,6 +152,7 @@ class Crawler:
         self.loadPaths()
         self.loadSettings()
         self.loadSessionHandler()
+        self.validateServerDetails()
         self.isServerActive()
         self.loadCrawlerClasses()
         self.sortClasses()
@@ -154,31 +161,37 @@ class Crawler:
     def payloads(self):
         return self.crawler_payloads
 
-    def __init__(self, domain, isInvasive):
+    def __init__(self, domain):
         self.domain = domain
-        self.isInvasive = isInvasive
         self.setup()
 
     def crawl(self) -> List:
         # We will first perform the scan for Robots.txt then Sitemap.xml & then lastly webpage
         # First sorting the modules in sorted order of the weights
 
-        results = set()
         if not os.path.exists(os.path.join(self.directory_path, "results")):   # If the directory doesn't exist
             os.makedirs(os.path.join(self.directory_path, "results"))
         for class_obj in self.crawler_classes:
+            module_start_time = time.time()
             _new_results = class_obj.scan(self) # Returns a set of urls
+            _already_found_urls = len(self.urls)
             if _new_results:
-                results = results.union(_new_results)
+                self.urls = self.urls.union(_new_results)
                 class_obj.saveJsonFile(self, _new_results)
+            else:
+                _new_results = {}
+            
+            module_end_time = time.time()
+            self.logger.info(f"{class_obj.name()} - Total Urls Found: {len(_new_results)} - New - {len(self.urls) - _already_found_urls}")
+            self.logger.info(f"Execution Time- {module_end_time-module_start_time}")
         
-        self.results = results
         self.saveFinalJsonFile()
-        return list(results)
+        return list(self.urls)
     
     def saveFinalJsonFile(self):
         from helper import saveFile
-        if self.results:
+        if self.urls:
             file_path = os.path.join(self.directory_path, "results", "total-urls.json")
-            saveFile(file_path, {"Urls": list(self.results)})
+            saveFile(file_path, {"Urls": list(self.urls)})
             self.logger.info(f"Saved all the ursl in the file : {file_path}")
+

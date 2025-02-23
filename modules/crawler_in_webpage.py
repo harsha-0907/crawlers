@@ -18,120 +18,146 @@ class CrawlerHelper(Crawler):
         return 2
 
     @staticmethod
+    def name():
+        return "CrawlerInWebpage"
+    
+    @staticmethod
     def info():
         return """
             Here we will start with the BaseUrl and then move using depth-first search algorithm.
             We will parse all the data frorm webpages filter the urls & follow them
         """
 
-    def parseData(self, web_data):  # It might consist any file(html, js, css or php)
+    def parseData(cls, self, web_data , url):  # It might consist any file(html, js, css or php)
         # Links(Direct & In-Direct are found in anchor tags) -> href, src (most cases)
-        urls = set()
+        finalUrls = set(); urls = set()
         try:
+            url_path = urlparse(url).path
+            if url_path != '/':
+                url_path += '/'
+
             domain_name = self.domain.split("/", 2)[2]
             src_pattern = r'src="[^\s]+"'   # regex Patterns to match src
             href_pattern = r'href="[^\s]+"'  # regex Patterns to match href
             src_text = re.findall(src_pattern, web_data)
+
             for _text in src_text:
                 _url = _text[5:-1]
-                if "http" not in _url:
+                if "http" != _url[:4]:
                     # This is an indirect url (same domain only)
                     if _url[0] == '/':
+                        # This is a direct url
                         urls.add(self.domain+_url)
+
+                    else:
+                        # This is an indirect url
+                        urls.add(self.domain+url_path+_url)
+
                 else:
                     if domain_name in _url:
                         # Check if the url belongs to the same domain
                         urls.add(_url)
-                    else:
-                        # This url belongs to a different domain => Hence not considered
-                        pass
-            
+                        
             href_text = re.findall(href_pattern, web_data)
+
             for _text in href_text:
                 _url = _text[6:-1]
-                if "http" not in _url:
+                if "http" != _url[:4]:
                     # This is an indirect url (same domain only)
                     if _url[0] == '/':
+                        # This is a direct path
                         urls.add(self.domain+_url)
+                    
+                    else:
+                        urls.add(self.domain+url_path+_url)
+                    
                 else:
                     if domain_name in _url:
+                        # CHeck for the extension
                         urls.add(_url)
-                    else:
-                        # This url belongs to another domain => not considered
-                        pass
-        
+                    
+            for url in urls:
+                if cls.isValidExtension(self, url):
+                    finalUrls.add(url)
+            # finalUrls = [url for url in urls if cls.isValidExtension(self, url)]
+            
         except Exception as _e:
             pass
 
         finally:
-            return urls
+            return finalUrls
         
     def isValidExtension(self, url):
         # We will check if the response data that is expected from the url is required or not
-        _url = urlparse(url)
-        _ext = splitext(_url.path)[1]
-        if _ext in self.disallowedExtensions:
+        try:
+            _url = urlparse(url)
+            _ext = splitext(_url.path)[1]
+            if _ext in self.disallowedExtensions:
+                return False
+            elif _ext == '' or self.allowedExtensions == [] or _ext in self.allowedExtensions:
+                # If it is a webpage like(/path1/path2)
+                return True
+            else:
+                return False    # This extension is not restricted but also not required
+
+        except Exception as _e:
             return False
-        elif _ext == '' or self.allowedExtensions == [] or _ext in self.allowedExtensions:
-            # If it is a webpage like(/path1/path2)
-            return True
-        else:
-            return False    # This extension is not restricted but also not required
 
     @classmethod
     def scan(cls, self):    # Here self -> object of the parent class
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
         if self.isInvasive:    # This is an Invasive scan -> consumes a lot of network bandwidth
-            print("Crawling Webpages")
+            self.logger.info("Crawling Webpages")
             _last_time = 0  # Intitalizing the _last_time param
             _request_interval = 0.4 # A timeout of atleast 0.4 seconds before sending another request (increases on 429 error)
             # Here we have to start with a single url & start searching for others
             # Starting point of the crawl will be baseUrl or first url in the urls(set)
-            crawled_urls = set(); queue = [self.domain]    
-            while len(queue) > 0:
-                _current_url = queue.pop(0)
-                _resp = requester(sessionHandler=self.sessionHandler, url=_current_url, headers=self.headers,
-                        cookies=self.cookies, timeout=self.timeout, allow_redirects=True)
-                last_time = time.time() # To store the time at which the scan started
-                _new_results = set()
-                if _resp is not None:
-                    # Parse the response if it is valid for any content
-                    if _resp.status_code == 429:
-                        # Rate Limiting Code (increasing the request interval by 0.1 s)
-                        _request_interval += 0.1
-                        time.sleep(_request_interval)
-                        queue.insert(0, _current_url)
+            stack = [(1, self.domain)]; # Any new url is checked in stack first and then in self.urls
+            now_time = time.time(); maxTime = self.data_store["Configurations"]["timedCrawl"]; newUrls = True
+            completed_urls = set()
+
+            while len(stack) > 0:
+                if maxTime is not None and time.time() - now_time > maxTime:
+                    self.logger.warning("Aborting Crawl - Time Complete")
+                    break
+                
+                stack_pos, newUrl = stack.pop(-1)
+                if newUrl in completed_urls:
+                    continue
+                  
+                completed_urls.add(newUrl)
+                if stack_pos > self.maxDepth:
+                    # This url will not be considered now as maxDepth reached
+                    continue
+                self.urls.add(newUrl)
+                response = requester(sessionHandler=self.sessionHandler, url=newUrl, headers=self.headers, cookies=self.cookies, allow_redirects=True, timeout=self.timeout)
+
+                if response is None:
+                    continue
+                
+                newUncheckedUrls = cls.parseData(cls, self, response.text, response.url)
+                # newUrls = False # There are no new urls detected
+                for _url in newUncheckedUrls:
+                    if _url[-1] == '/':
+                        _url = _url[:-1]
+
+                    if _url in completed_urls:
+                        # We will not pursue with this url
                         continue
-                    
+
                     else:
-                        _new_results = cls.parseData(self, _resp.text)
-                
-                # print(len(_new_results))
-                if _new_results:
-                    for _new_url in _new_results:
-                        if cls.isValidExtension(self, _new_url):
-                            if _new_url[-1] == '/':
-                                _new_url = _new_url[:-1]
-                            
-                            if _new_url in crawled_urls or _new_url in queue:
-                                continue
-                            else:
-                                queue.append(_new_url)
+                        stack.append((stack_pos+1, _url))
+                        # newUrls = True
 
-                # Wait for _request_interval seconds before sending another request
-                _time_spent = time.time() - _last_time
-                if _time_spent < _request_interval:
-                    _time_rem = _request_interval - _time_rem
-                    time.sleep(_time_rem)
-
-                crawled_urls.add(_current_url)
-                
+            print(len(stack), len(completed_urls))
+            # cls.saveJsonFile(self, urls)
         else:
-            print("Not Crawling the WEbpage")
-            self.logger.info("Web-Crawling not Done as scan is non Invasive")
+            print("Not Crawling the Webpages")
+            self.logger.info("This is a non Invasive scan")
             return {}
 
     def saveJsonFile(self, urls):
         saveFile(os.path.join(self.directory_path, "results", "urls-webpage.json"), {"Webpage": list(urls)})
         self.logger.info("Document Dump Successful")
+
 

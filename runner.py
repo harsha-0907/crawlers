@@ -4,7 +4,7 @@ from crawler import Crawler
 
 baseUrl = input("Base Url (https://example.com): ")
 
-crawler_obj = Crawler(baseUrl, isInvasive=True)
+crawler_obj = Crawler(domain=baseUrl)
 crawled_urls = crawler_obj.crawl()
 
 # print(f"Crawled Urls: {crawled_urls}")

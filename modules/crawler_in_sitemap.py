@@ -19,6 +19,10 @@ class CrawlerHelper(Crawler):
         return 1
 
     @staticmethod
+    def name():
+        return "CrawlerInSitemap"
+    
+    @staticmethod
     def info():
         return """We are crawling the urls from sitemap.xml present in the webite
                 All the urls will be parsed irrespective of the invasivness of the crawling"""
@@ -61,15 +65,14 @@ class CrawlerHelper(Crawler):
     @classmethod
     def scan(cls, self):    # self is the object of the parent class(crawler)
         # We are defining scan as parent class as we need to call other methods of the child class(CrawlerHelper)
-        print("Sitemap")
+        self.logger.info("Crawling Sitemap")
         urls = set()  # All the urls that don't have sitemap.xml in them
         _payloads = self.payloads()["sitemap"]
-        print(_payloads)
         for _payload in _payloads:
             try:
                 url = self.domain + _payload
                 _resp = requester(sessionHandler=self.sessionHandler,
-                    url=url, headers=self.headers, cookies=self.cookies, allow_redirects=True)
+                    url=url, headers=self.headers, cookies=self.cookies, allow_redirects=True, timeout=self.timeout)
                 
                 if _resp is None or _resp.status_code >= 400:
                     continue
