@@ -2,7 +2,8 @@
 
 from crawler import Crawler
 
-baseUrl = input("Base Url (https://example.com): ")
+# baseUrl = input("Base Url (https://example.com): ")
+baseUrl = "https://breachlock.com"
 
 crawler_obj = Crawler(domain=baseUrl)
 crawled_urls = crawler_obj.crawl()

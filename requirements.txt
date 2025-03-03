@@ -7,3 +7,7 @@ regex
 importlib
 logging
 python-dotenv
+pydantic
+matplotlib
+networkx
+scipy

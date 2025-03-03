@@ -62,7 +62,7 @@ class CrawlerHelper(Crawler):
                     site_map_urls = ['/'+fetchPathAndParams(url_path) for url_path in site_map_urls]
                     # print(site_map_urls)
                     self.crawler_payloads["sitemap"] = list(site_map_urls)
-                    print("Updated the Sitemap")
+                    self.logger.info("Updated the Sitemap")
                 
                 if urls:
                     return urls
@@ -90,5 +90,5 @@ class CrawlerHelper(Crawler):
         return {}
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self.directory_path, "results", "urls-robots.json"), {"Robots": list(urls)})
+        saveFile(os.path.join(self.directory_path, "results", "urls-robots.json"), {"Urls": list(urls)})
         self.logger.info("Document Dump Successful")

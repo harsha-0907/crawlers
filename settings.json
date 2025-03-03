@@ -1,6 +1,6 @@
 {
     "Configurations": {
-        "disallowedExtensions": [".svg", ".png", ".webp", ".css", ".gif"],
+        "disallowedExtensions": [".svg", ".png", ".css", ".gif"],
         "allowedExtensions": [],
         "user-agent": "GoWebCrawler",
         "cookies": "",

@@ -21,14 +21,12 @@ As it continues to *evolve*, it is set to become a valuable tool for developers 
 
 ## Note
 1. If you need to modify any default settings for the tool, head out to the settings.json for any changes
+2. Check out the website structure in results/web-graph.json
 
-
-## Change-log
-1. Updated the logging system to cover all critical areas
-2. Modified the structure, using settings.json for all tool related settings
-3. Modified the BFS to DFS for granular control over depth
-4. Added time-bound crawling of webpages to ensure that crawling doesn't run for indefinitely
-5. Fixed minor bugs present in Version 1.0
+## What's New (1.1 -> 1.2)
+1. Map the structure of the webpages crawled
+2. Added url filtering in webpage crawling to avoid bad requests
+3. Fixed minor bugs present in Version 1.1
 
 
 ### You will be getting your results!!!

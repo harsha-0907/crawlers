@@ -29,7 +29,17 @@ class Crawler:
         
         # Add the handler to the logger
         self.logger.addHandler(handler)
+
+        self.logger.info("-"*100)
+        self.logger.info("\n\n New Scan")
     
+    def loadPaths(self):
+        file_path = os.path.abspath(__file__)
+        self.directory_path = file_path[:file_path.rfind('/')]
+        self.module_directory_path = os.path.join(self.directory_path, "modules")
+        sys.path.append(self.directory_path)
+        sys.path.append(self.module_directory_path)
+
     def loadSettings(self):
         # The setings are present in the settings.json file
         try:
@@ -45,9 +55,7 @@ class Crawler:
                 self.maxDepth = self.data_store["Configurations"]["maxdepth"]   # The default value for depth limit is 4
                 self.disallowedExtensions = self.data_store["Configurations"]["disallowedExtensions"]
                 self.allowedExtensions = self.data_store["Configurations"]["allowedExtensions"]
-                self.urls = set()
-                self.userAgents = dict()
-            
+
             else:
                 self.logger.critical("Invalid Settings.json")
                 exit()
@@ -55,17 +63,11 @@ class Crawler:
         except Exception as _e:
             self.logger.critical(f"Error Occured while loading settings\n Error: {_e}")
             exit()
-        
-    def loadPaths(self):
-        file_path = os.path.abspath(__file__)
-        self.directory_path = file_path[:file_path.rfind('/')]
-        self.module_directory_path = os.path.join(self.directory_path, "modules")
-
-        # print(self.directory_path, self.module_directory_path)
-
-        # Add the directories for searching modules & other files
-        sys.path.append(self.directory_path)
-        sys.path.append(self.module_directory_path)
+    
+    def loadVariables(self):
+        self.urls = {self.domain: 0, }
+        self.reverseUrls = {0: self.domain, }
+        self.graph = dict()
 
     def loadSessionHandler(self):
         try:
@@ -76,6 +78,12 @@ class Crawler:
         except Exception as _e:
             self.logger.critical(f"Error Occured while loading session handler\n Error: {_e}")
             exit()
+
+    def validateServerDetails(self):
+        # Any checks for the server
+        if self.domain[-1] == '/':
+            # The url shouldn't end with a '/'
+            self.domain = self.domain[:-1]
 
     def isServerActive(self):
         try:
@@ -139,18 +147,13 @@ class Crawler:
             self.logger.critical(f"Error Occured while Sorting the Classes. \n Error : {_e}")
             exit()
 
-    def validateServerDetails(self):
-        # Any checks for the server
-        if self.domain[-1] == '/':
-            # The url shouldn't end with a '/'
-            self.domain = self.domain[:-1]
-
     def setup(self):
         # Setup all the variables & dependencies
         print("Initializing the Crawler Dependencies")
         self.loadLogger()
         self.loadPaths()
         self.loadSettings()
+        self.loadVariables()
         self.loadSessionHandler()
         self.validateServerDetails()
         self.isServerActive()
@@ -161,14 +164,19 @@ class Crawler:
     def payloads(self):
         return self.crawler_payloads
 
+    def addUrls(self, urls):
+        index = len(self.urls) + 1
+        for url in urls:
+            if url not in self.urls:
+                self.urls[url] = index
+                self.reverseUrls[index] = url
+            index += 1
+
     def __init__(self, domain):
         self.domain = domain
         self.setup()
 
     def crawl(self) -> List:
-        # We will first perform the scan for Robots.txt then Sitemap.xml & then lastly webpage
-        # First sorting the modules in sorted order of the weights
-
         if not os.path.exists(os.path.join(self.directory_path, "results")):   # If the directory doesn't exist
             os.makedirs(os.path.join(self.directory_path, "results"))
         for class_obj in self.crawler_classes:
@@ -176,11 +184,11 @@ class Crawler:
             _new_results = class_obj.scan(self) # Returns a set of urls
             _already_found_urls = len(self.urls)
             if _new_results:
-                self.urls = self.urls.union(_new_results)
+                self.addUrls(_new_results)
                 class_obj.saveJsonFile(self, _new_results)
             else:
                 _new_results = {}
-            
+
             module_end_time = time.time()
             self.logger.info(f"{class_obj.name()} - Total Urls Found: {len(_new_results)} - New - {len(self.urls) - _already_found_urls}")
             self.logger.info(f"Execution Time- {module_end_time-module_start_time}")
@@ -193,5 +201,4 @@ class Crawler:
         if self.urls:
             file_path = os.path.join(self.directory_path, "results", "total-urls.json")
             saveFile(file_path, {"Urls": list(self.urls)})
-            self.logger.info(f"Saved all the ursl in the file : {file_path}")
-
+            self.logger.info(f"Saved all the urls in the file : {file_path}")

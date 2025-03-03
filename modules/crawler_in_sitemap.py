@@ -1,6 +1,7 @@
 #!/bin/python3
 
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 from crawler import Crawler
 from helper import *
 import os
@@ -29,25 +30,24 @@ class CrawlerHelper(Crawler):
 
     @staticmethod
     def parseXMLData(xml_data):
-            # We will consider the data that is present in between the <loc> ... </loc>
-            # We will return 2 sets (urls & any sitemaps)
-            _sitemaps = set()
-            xml_soup = BeautifulSoup(xml_data, "xml")
-            _xml_urls = xml_soup.find_all("loc")
-            xml_urls = set()   # The final set of urls
-            for _xml_url in _xml_urls:
-                _xml_url = str(_xml_url)[5:-6]
-                if ".xml" in _xml_url:
-                    _sitemaps.add(_xml_url)
-                else:
-                    xml_urls.add(_xml_url)
+        _sitemaps = set(); resource_urls = set()
+        xml_soup = BeautifulSoup(xml_data, "xml")
+        _xml_urls = xml_soup.find_all("loc")
+        for _xml_url in _xml_urls:
+            _xml_url = str(_xml_url)[5:-6]
+            if ".xml" in _xml_url:
+                _sitemaps.add(_xml_url)
+            else:
+                resource_urls.add(_xml_url)
 
-            return (xml_urls, _sitemaps)
+        return (resource_urls, _sitemaps)
 
     @staticmethod
-    def parseHTMLData(html_data): # self is the parent object (crawler's instance)
+    def parseHTMLData(response): # self is the parent object (crawler's instance)
         # The sitemap mostly consists of 'a' tags
-        _sitemaps = set()
+        html_data = response.text
+        _present_path = urlparse(response.url).path
+        _sitemaps = set(); resource_urls = set()
         html_soup = BeautifulSoup(html_data, "html.parser")
         __urls = html_soup.find_all("a")
         for __url in __urls:
@@ -57,10 +57,12 @@ class CrawlerHelper(Crawler):
             if ".xml" in __url:
                 _sitemaps.add(__url)
             else:
-                # Remove href from the text
-                xml_urls.add(self_domain + __url)
-        
-        return (xml_urls, _sitemaps)
+                if __url[0] != '/':
+                    url = self_domain + _present_path + '/' +  __url
+                else:
+                    url = self_domain + __url
+                resource_urls.add(url)
+        return (resource_urls, _sitemaps)
     
     @classmethod
     def scan(cls, self):    # self is the object of the parent class(crawler)
@@ -93,7 +95,7 @@ class CrawlerHelper(Crawler):
                                     # Classify the type of response
                                     _content_type = getContentType(_resp)
                                     if _content_type == "text/html":
-                                        __urls, __payloads = cls.parseHTMLData(_resp.text)
+                                        __urls, __payloads = cls.parseHTMLData(_resp)
                                         urls = urls.union(__urls)
                                         _payloads = _payloads.union(__payloads)
 
@@ -102,7 +104,7 @@ class CrawlerHelper(Crawler):
                                         __urls, __payloads = cls.parseXMLData(_resp.text)
                                         urls = urls.union(__urls)
                                         _payloads = _payloads.union(__payloads)
-                                    
+
                                 else:
                                     # This is not a valid payload
                                     continue
@@ -110,14 +112,14 @@ class CrawlerHelper(Crawler):
                         else:
                             # This payload is already complete
                             continue
-                    
+
                     # No need to check for any other payloads
                     break
             except Exception as _e:
                 self.logger.error(f"Error in sitemap.scan module.\n Error: {_e}")
-            
+
         return urls
 
     def saveJsonFile(self, urls):
-        saveFile(os.path.join(self.directory_path, "results", "urls-sitemap.json"), {"Sitemap": list(urls)})
+        saveFile(os.path.join(self.directory_path, "results", "urls-sitemap.json"), {"Urls": list(urls)})
         self.logger.info("Document Dump Successful")

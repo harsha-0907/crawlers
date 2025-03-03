@@ -3,3 +3,5 @@
 *.sh
 results
 __pycache__
+*.log
+versions
