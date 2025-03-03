@@ -1,7 +1,0 @@
-.idx
-.venv
-*.sh
-results
-__pycache__
-*.log
-versions
